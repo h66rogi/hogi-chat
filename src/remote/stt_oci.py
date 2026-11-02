@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
-import os as _os, sys as _sys
-_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))))
-import config  # noqa: E402  (repo root)
-"""OCI에서 도는 BJ 전사 수집기 (후로기 채팅 릴레이용).
+"""BJ 전사 수집기 (채팅 릴레이용).
 
-맥미니·집 회선에서는 SOOP 오디오가 1초 만에 끊겨서 쓸 수 없다(2026-10-24 실측:
-9세션 45초에 0.5초). OCI(vlife-rec-1)에서는 같은 recorder로 30초에 오디오 712KB가
-정상으로 들어온다. 그래서 수집·전사는 여기서 하고, 결과만 transcript.jsonl에 쌓는다.
+가정용 회선에서는 SOOP 오디오가 1초 만에 끊겨서 쓸 수 없다(실측: 9세션 45초에 0.5초).
+데이터센터 회선에서는 같은 recorder로 30초에 오디오 712KB가 정상으로 들어온다.
+그래서 수집·전사는 서버에서 하고, 결과만 transcript.jsonl에 쌓는다.
 
 흐름: soop_native(20초) → ffmpeg 16k mono wav → GPT 오디오(OpenRouter openai/gpt-audio-mini)
       → 정제 → transcript.jsonl
 """
+
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))))
+import config  # noqa: E402  (repo root)
 import base64
 import glob
 import json
@@ -20,6 +21,7 @@ import shutil
 import subprocess
 import sys
 import time
+import urllib.parse
 import urllib.request
 
 BASE = os.path.dirname(os.path.abspath(__file__))
@@ -29,7 +31,7 @@ OUT = os.path.join(BASE, "transcript.jsonl")
 USAGE = os.path.join(BASE, "usage.jsonl")
 SCENE = os.path.join(BASE, "scene.jsonl")
 VISION_MODEL = os.environ.get("HOGI_VISION_MODEL", "google/gemini-3.5-flash")
-# BJ가 무언가를 보여주며 말할 때만 화면을 본다(운영자 2026-10-24: 화면 인식은 예외적으로만).
+# BJ가 무언가를 보여주며 말할 때만 화면을 본다(화면 인식은 예외적으로만).
 SHOW_CUE = re.compile(r"(이거|이걸|이게|저거|요거)\s*(봐|보세|보라|뭐|좀 봐|보이)|봐봐|보이시|이것 봐|어때\s*\?")
 LOG = os.path.join(BASE, "stt.log")
 WORK = "/tmp/hogi-stt"
@@ -67,7 +69,7 @@ STT_HINT = "후로기 인터넷 방송. 한국어 말소리만 받아쓴다. 노
 
 
 def transcribe_openai(wav):
-    """OpenAI 전용 전사 모델 직결(운영자가 크레딧 충전, 2026-10-24). 실패하면 None."""
+    """OpenAI 전용 전사 모델 직결. 실패하면 None."""
     k = env("OPENAI_API_KEY")
     if not k:
         return None
@@ -124,8 +126,25 @@ def month_spent():
     return total
 
 
+def is_live(bj=None):
+    """player_live_api 응답의 RESULT로 방송 중인지 본다. 오프라인 재연결 루프를 막는 용도."""
+    bj = bj or BJ
+    try:
+        url = f"https://live.sooplive.co.kr/afreeca/player_live_api.php?bjid={bj}"
+        data = urllib.parse.urlencode({"bid": bj, "bno": "0", "type": "live",
+                                       "player_type": "html5"}).encode()
+        req = urllib.request.Request(url, data=data, headers={
+            "User-Agent": "Mozilla/5.0", "Referer": f"https://play.sooplive.com/{bj}"})
+        ch = json.loads(urllib.request.urlopen(req, timeout=15).read()).get("CHANNEL") or {}
+        return str(ch.get("RESULT")) == "1"
+    except Exception:
+        return False
+
+
 def grab():
     """방송 오디오 SECONDS초를 16k mono wav로 받는다. (wav, 오디오프레임수) 또는 (None, 사유)."""
+    if not os.path.exists(REC):
+        return None, f"레코더 없음: {REC} (HOGI_RECORDER로 경로를 지정한다)"
     if os.path.isdir(WORK):
         shutil.rmtree(WORK, ignore_errors=True)
     os.makedirs(os.path.dirname(WORK), exist_ok=True)
@@ -230,6 +249,9 @@ def clean(text):
 
 
 def once():
+    if not is_live():
+        log("[방송 꺼짐] 전사 생략")
+        return None
     if month_spent() >= MONTHLY_CAP:
         log(f"[예산 초과] 이번 달 ${month_spent():.2f} ≥ ${MONTHLY_CAP}")
         return None

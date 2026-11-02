@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
-import os as _os, sys as _sys
-_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))))
-import config  # noqa: E402  (repo root)
-"""BJ 실시간 전사 (OCI 전용).
+"""BJ 실시간 전사 (서버 전용).
 
 SOOP 방송을 끊김 없이 받아(soop_native, 2초 HLS 조각) 오디오만 24kHz PCM으로 풀고,
 간단한 음량 기반 말소리 감지(VAD)로 말하는 구간만 OpenAI Realtime 전사 세션에 흘려 넣는다.
 말이 끝나면(0.7초 침묵) 또는 12초마다 commit해서 문장 단위 결과를 transcript.jsonl에 쓴다.
 
 예전 방식(20초 녹음 → 파일 전사)은 매 조각마다 새로 접속해 조각 사이가 비고 결과가 20~45초 늦었다.
-운영자 요청(2026-10-24 "실시간 전사는 안되나?")으로 교체. 예전 방식은 stt_oci.py(hogi-stt)로 남겨 둔다.
+파일 전사는 조각 사이가 비고 20~45초 늦어서 실시간 판단에 쓸 수 없었다. 예전 방식은 stt_oci.py(hogi-stt)로 남겨 둔다.
 """
+
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))))
+import config  # noqa: E402  (repo root)
 import array
 import base64
 import glob
@@ -224,6 +225,18 @@ def segments():
 
 
 def run_once():
+    if not base.BJ:
+        log("[설정 오류] HOGI_BJ_ID가 비어 있다")
+        time.sleep(60)
+        return
+    if not os.path.exists(base.REC):
+        log(f"[레코더 없음] {base.REC} — HOGI_RECORDER로 경로를 지정한다")
+        time.sleep(60)
+        return
+    if not base.is_live():
+        log("[방송 꺼짐] 45초 뒤 다시 확인")
+        time.sleep(45)
+        return
     if base.month_spent() >= base.MONTHLY_CAP:
         log(f"[예산 초과] 이번 달 ${base.month_spent():.2f} ≥ ${base.MONTHLY_CAP}")
         time.sleep(300)

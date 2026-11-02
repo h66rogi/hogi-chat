@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-import os as _os, sys as _sys
-_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
-import config  # noqa: E402  (repo root)
 """로컬 Discord 게이트웨이 클라이언트 — 공개 HTTPS 엔드포인트 없이 버튼/모달을 처리한다.
 
 WebSocket으로 Discord 게이트웨이에 붙어 INTERACTION_CREATE 를 직접 받고, 응답은
@@ -10,6 +7,10 @@ REST callback 으로 보낸다. Cloudflare 뒤에 두면 Discord가 PING을 못 
 환경변수(.env 또는 셸 환경): DISCORD_HOGI_BOT_TOKEN
 실행: /usr/bin/python3 bot_gateway.py
 """
+
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+import config  # noqa: E402  (repo root)
 import json
 import os
 import sys

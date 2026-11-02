@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
+"""전사 모델 비교: 같은 방송 오디오를 여러 모델에 넣고, 소리를 듣는 심사 모델이 모델명을 가린 채 채점한다.
+
+사용(서버): python3 stt_compare.py [초=90]
+결과: /tmp/stt-compare/result.json, 표준출력 요약. 방송·Discord에는 아무것도 보내지 않는다.
+"""
+
 import os as _os, sys as _sys
 _sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))))
 import config  # noqa: E402  (repo root)
-"""전사 모델 비교: 같은 방송 오디오를 여러 모델에 넣고, 소리를 듣는 심사 모델이 모델명을 가린 채 채점한다.
-
-사용(OCI): python3 stt_compare.py [초=90]
-결과: /tmp/stt-compare/result.json, 표준출력 요약. 방송·Discord에는 아무것도 보내지 않는다.
-"""
 import base64
 import glob
 import json
@@ -33,7 +34,7 @@ JUDGE = os.environ.get("HOGI_STT_JUDGE", "google/gemini-4-argon")
 def capture():
     """실시간 전사 서비스가 받고 있는 2초 조각을 그대로 복사해 모은다.
 
-    같은 서버에서 SOOP 수신 세션을 하나 더 열면 IncompleteReadError로 거절된다(2026-10-24 실측).
+    같은 서버에서 SOOP 수신 세션을 하나 더 열면 IncompleteReadError로 거절된다(실측).
     """
     import shutil
     live_dir = "/tmp/hogi-stt-live"

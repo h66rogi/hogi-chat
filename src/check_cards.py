@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
+"""마지막 후보 카드의 작성 봇과 버튼을 Discord API로 확인한다."""
+
 import os as _os, sys as _sys
 _sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
 import config  # noqa: E402  (repo root)
-"""마지막 후보 카드의 작성 봇과 버튼을 Discord API로 확인한다."""
 import json
 import os
 import sys

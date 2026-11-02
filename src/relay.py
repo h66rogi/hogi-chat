@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-import os as _os, sys as _sys
-_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
-import config  # noqa: E402  (repo root)
 """후로기(SOOP h66rogi) 라이브 채팅 → AI 판단 → Discord #hogi_chat 실시간 중계.
 
 - SOOP 채팅 WebSocket 프로토콜로 익명 수신 (읽기 전용, 채팅 전송 안 함)
@@ -9,6 +6,10 @@ import config  # noqa: E402  (repo root)
 - state.json 의 enabled 로 켜고 끈다. enabled=false 면 수집만 하고 전송하지 않는다.
 - dry_run=true 면 판단 결과만 로그에 남기고 Discord 로 보내지 않는다.
 """
+
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+import config  # noqa: E402  (repo root)
 import json
 import os
 import re
@@ -329,9 +330,12 @@ def main():
     except BlockingIOError:
         log("[중복 실행] 다른 relay가 이미 돌고 있어 종료")
         return
-    log(f"=== 후로기 채팅 중계 시작 (state={load_state()}) ===")
-    # 시청자 채팅을 골라 Discord로 넘기던 예전 모드와 리액션 승인은 쓰지 않는다
-    # (운영자 정정: 시청자 채팅 선별이 아니라 내 채팅 후보 생성 + 버튼 승인). 수집(recent.jsonl)만 한다.
+    if not BJ_ID:
+        log("[설정 오류] HOGI_BJ_ID가 비어 있다. .env 또는 환경변수로 채널 id를 지정한다.")
+        sys.exit(2)
+    log(f"=== 채팅 수집 시작 (channel={BJ_ID}, state={load_state()}) ===")
+    # 이 프로세스는 수집(recent.jsonl)만 한다. 후보 생성·승인은 compose.py가 맡는다.
+    # HOGI_LEGACY_FORWARD=1이면 예전 '시청자 채팅 선별 전달' 모드도 함께 돈다.
     if os.environ.get("HOGI_LEGACY_FORWARD") == "1":
         threading.Thread(target=flusher, daemon=True).start()
         threading.Thread(target=reaction_watch, daemon=True).start()

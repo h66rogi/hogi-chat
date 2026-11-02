@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
-import os as _os, sys as _sys
-_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
-import config  # noqa: E402  (repo root)
 """후로기 채팅 중계 제어.
 
 사용:
   hogi-chat on        전송 켜기 (수집·판단·디스코드 전송)
   hogi-chat off       전송 끄기 (프로세스는 살아 있고 로그만)
   hogi-chat dry       판단만 하고 전송 안 함
-  hogi-chat start     수집 프로세스 시작 (launchd)
+  hogi-chat start     수집 프로세스 시작 (macOS launchd)
   hogi-chat stop      수집 프로세스 종료
   hogi-chat status    현재 상태·최근 로그
+
+`start`/`stop`은 ~/Library/LaunchAgents의 plist를 쓴다. 서버에서는 systemd 유닛을 쓴다.
 """
+
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+import config  # noqa: E402  (repo root)
 import json
 import os
 import subprocess

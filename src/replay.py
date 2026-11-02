@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-import os as _os, sys as _sys
-_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
-import config  # noqa: E402  (repo root)
 """다시보기(VOD)나 녹화본으로 컨텍스트 주입을 리플레이 테스트한다.
 
 미디어(로컬 HLS 디렉터리·mp4·ts, 또는 라이브 캡처)에서
@@ -15,6 +12,10 @@ import config  # noqa: E402  (repo root)
   python3 replay.py --capture danz59 --seconds 60 --count 2
   python3 replay.py --media /path/vod.mp4 --window 120 --count 5
 """
+
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+import config  # noqa: E402  (repo root)
 import argparse
 import glob
 import json

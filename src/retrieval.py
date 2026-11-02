@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
-import os as _os, sys as _sys
-_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
-import config  # noqa: E402  (repo root)
 """비슷한 상황 검색(RAG): '그 직전 방 상황 → 운영자가 실제로 친 말' 쌍에서 지금과 닮은 순간을 찾는다.
 
-연구 노트(research-note.md) B단계. 2026-10-24 운영자 지시("연구결과 다시 봐라, 근본 방식 변화")로 도입.
+프롬프트 few-shot 다음 단계로 도입했다(연구 기록: research/model-training.md).
 - 데이터: rogimarble 백업 덤프의 collector_chat_inbox(방 전체 채팅) + 수집기 recent.jsonl(백업 이후분).
-- 쌍: 운영자 채팅 한 줄마다 직전 90초 안의 다른 사람 채팅(최대 12줄)을 상황으로 붙인다.
-- AI가 대신 보낸 줄(candidates.jsonl에서 승인·전송된 문장)은 운영자 발화에서 뺀다(자기 복제 방지).
+- 쌍: 내 채팅 한 줄마다 직전 90초 안의 다른 사람 채팅(최대 12줄)을 상황으로 붙인다.
+- AI가 대신 보낸 줄(candidates.jsonl에서 승인·전송된 문장)은 내 발화에서 뺀다(자기 복제 방지).
 - 색인: OpenAI text-embedding-3-small 256차원. 상황 텍스트만 임베딩한다.
 
 사용: python3 retrieval.py build <chat.sql>   # 쌍 만들기 + 임베딩
       python3 retrieval.py query "지금 상황 텍스트"
 """
+
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+import config  # noqa: E402  (repo root)
 import json
 import os
 import sys

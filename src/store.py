@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-import os as _os, sys as _sys
-_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
-import config  # noqa: E402  (repo root)
 """후보 판정 저장소. 콘솔(console.py)과 리액션 감시(reaction.py)가 같이 쓴다.
 
 - candidates.jsonl 을 flock 으로 잠그고 읽고-고쳐-쓴다 (동시 쓰기 경합 방지)
 - training.jsonl 은 message_id 기준으로 중복 append 를 막는다
 - 승인 + live 면 실제 방송 채팅으로 보낸다 (sender 콜백)
 """
+
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+import config  # noqa: E402  (repo root)
 import fcntl
 import json
 import os

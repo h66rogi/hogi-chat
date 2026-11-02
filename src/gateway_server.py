@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-import os as _os, sys as _sys
-_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
-import config  # noqa: E402  (repo root)
 """후로기 콘솔용 Discord 봇 interaction 엔드포인트.
 
 Discord가 서명한 요청만 처리한다(Ed25519, 앱 공개키).
@@ -15,6 +12,10 @@ Discord가 서명한 요청만 처리한다(Ed25519, 앱 공개키).
 
 실행: /usr/bin/python3 gateway_server.py [--port 8793]
 """
+
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+import config  # noqa: E402  (repo root)
 import json
 import threading
 import os

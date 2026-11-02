@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
-import os as _os, sys as _sys
-_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))))
-import config  # noqa: E402  (repo root)
-"""Discord 버튼 엔드포인트용 Cloudflare quick tunnel 감시자 (OCI에서 실행).
+"""Discord 버튼 엔드포인트용 Cloudflare quick tunnel 감시자 (서버에서 실행).
 
 quick tunnel URL은 cloudflared가 다시 뜰 때마다 바뀐다. 그래서 이 감시자가
 1) cloudflared(도커)를 띄우고 2) 새 URL을 읽어 3) 게이트웨이 PING이 터널로 통하는지 확인한 뒤
 4) Discord `PATCH /applications/@me` 로 Interactions Endpoint URL을 스스로 갱신한다.
 포털에 손으로 들어갈 필요가 없다. cloudflared가 죽으면 다시 띄우고 같은 절차를 반복한다.
 """
+
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))))
+import config  # noqa: E402  (repo root)
 import json
 import os
 import re

@@ -3,22 +3,22 @@
 방송 오디오를 계속 받아 BJ가 말한 문장만 뽑는다. 목표는 후보 생성이 **지금 무슨 말이 나왔는지** 아는 것이다.
 최종 형태(`src/remote/stt_live.py`)는 지연 중앙값 2~3초, 방송 전체 구간 수신이다.
 
-## 왜 OCI에서 돌리나
+## 어디서 돌려야 하나
 
-집 회선·맥미니에서는 SOOP 오디오가 들어오지 않았다.
+SOOP 오디오는 가정용 회선에서 거의 들어오지 않았다.
 
 | 위치 | 결과 |
 | --- | --- |
-| 맥미니/집 회선 | 9세션 45초 동안 0.5초 수신 (사실상 0) |
-| OCI 동일 코드 | 30초에 712KB 정상 수신 |
+| 가정용 회선 | 9세션 45초 동안 0.5초 수신 (사실상 0) |
+| 데이터센터 회선 | 같은 코드로 30초에 712KB 정상 수신 |
 
-그래서 수집·전사·생성은 OCI에서, 승인 콘솔만 tailnet으로 접근하는 구조가 됐다.
+그래서 수집·전사·생성은 서버에서 돌리고, 승인 콘솔만 사설망으로 접근하는 구조가 됐다.
 
 ## 파이프라인
 
 ```
 SOOP 라이브 HLS (2초 조각)
-  └─ 외부 레코더(soop_native)로 조각 저장
+  └─ 외부 레코더로 조각 저장 (HOGI_RECORDER)
        └─ ffmpeg로 24kHz mono PCM 디코드
             └─ 음량 기반 VAD (RMS 임계, 기본 -38dB)
                  └─ 말하는 구간만 Realtime 전사 세션에 append
@@ -33,6 +33,21 @@ SOOP 라이브 HLS (2초 조각)
 - commit한 구간의 시작·끝·길이를 큐에 쌓아 두고, `committed` 이벤트의 `item_id`에 매핑해
   전사 결과에 정확한 시간 구간과 과금 초를 붙인다.
 - 과금은 보낸 오디오 초 × 분당 단가로 `usage.jsonl`에 기록한다. 세션 재연결·실패도 여기에 남는다.
+
+## 레코더 인터페이스
+
+이 저장소는 방송 수신기를 포함하지 않는다. `HOGI_RECORDER`가 가리키는 실행 파일이 아래 계약을 지키면 된다.
+(참고 구현: `open-stream-recorder` 계열의 `soop_native.py`)
+
+```bash
+python3 $HOGI_RECORDER https://play.sooplive.com/<BJ_ID>   --output <WORK> --seconds <N|0> --segment-seconds <2|4>   --min-height 360 --cookies <cookiefile> [--session-seconds S] [--max-gb G]
+```
+
+- `--output` 아래에 `part-*/segment-*.ts` 조각을 쓴다. `--seconds 0`이면 정지 신호까지 계속 받는다.
+- 표준출력에 `"media_counts": {"audio": <n>}`가 포함된 JSON 한 줄을 남긴다(수신 성공 판정에 쓴다).
+- `stt_live.py`는 2초 조각을 계속 읽고, `stt_oci.py`는 N초를 받아 파일 하나로 전사한다.
+
+레코더 경로가 없으면 전사기는 시작하지 않고 오류를 남긴다.
 
 ## 이전 방식(파일 전사)과 비교
 

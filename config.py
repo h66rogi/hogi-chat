@@ -15,7 +15,7 @@ BASE = os.environ.get("HOGI_BASE") or os.path.join(HOME, "hogi-chat")
 ENV_PATH = os.environ.get("HOGI_ENV") or os.path.join(BASE, ".env")
 
 # 방송 채널 (SOOP BJ id)
-BJ_ID = os.environ.get("HOGI_BJ_ID", "h66rogi")
+BJ_ID = os.environ.get("HOGI_BJ_ID", "")
 
 # 채팅에서 BJ로 취급할 표시 닉네임들
 BJ_NICKS = tuple(x.strip() for x in

@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-import os as _os, sys as _sys
-_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
-import config  # noqa: E402  (repo root)
 """방송 지각(perception): 화면 캡처 + 음성 전사를 컨텍스트로 만든다.
 
 - 화면: SOOP 라이브 썸네일(liveimg) 20초마다 1장 → 비전 모델이 한 줄 설명 → scene.jsonl
@@ -17,6 +14,10 @@ import config  # noqa: E402  (repo root)
   python3 perceive.py --transcribe <wav>
   python3 perceive.py --report          # 이번 달 사용액/건수
 """
+
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+import config  # noqa: E402  (repo root)
 import base64
 import glob
 import json
@@ -41,9 +42,9 @@ LOG = os.path.join(BASE, "perceive.log")
 BJID = config.BJ_ID
 VISION_MODEL = "google/gemini-3.5-flash-lite"
 STT_MODEL = "google/gemini-3.5-flash"
-NATIVE_SCRIPT = os.path.join(BASE, "vendor/recorder/soop_native.py")
-NATIVE_PY = "/opt/homebrew/bin/python3.14"   # soop_native 는 3.12+ 필요
-THUMB_EVERY = 300     # 초. 화면 설명은 기본으로 쓰지 않는다(운영자 2026-10-24: 예외적으로만).
+NATIVE_SCRIPT = os.environ.get("HOGI_RECORDER") or os.path.join(BASE, "vendor/recorder/soop_native.py")
+NATIVE_PY = os.environ.get("HOGI_RECORDER_PYTHON") or sys.executable  # 레코더가 요구하는 인터프리터
+THUMB_EVERY = 300     # 초. 화면 설명은 예외적으로만 쓴다.
 SHOW_CUE = __import__("re").compile(r"(이거|이걸|이게|저거|요거)\s*(봐|보세|보라|뭐|좀 봐|보이)|봐봐|보이시|이것 봐")
 AUDIO_SECS = 10       # 세그먼트 길이
 MONTHLY_CAP = 100.0   # 달러
@@ -180,10 +181,10 @@ def grab_thumb(bjid=BJID):
 
 
 def grab_audio(seconds=AUDIO_SECS, out=None):
-    """SOOP 네이티브 수신(vlife recorder)으로 오디오를 얻는다.
+    """외부 레코더로 오디오를 얻는다.
 
-    player_live_api의 CDN HLS는 익명 토큰을 거부하지만(401), vlife가 쓰는 네이티브
-    프로토콜 경로는 실제 방송 미디어를 받는다. 받은 HLS 파트에서 오디오만 뽑는다.
+    player_live_api의 CDN HLS는 익명 토큰을 거부하지만(401), 네이티브 프로토콜을 쓰는
+    레코더는 실제 방송 미디어를 받는다. 받은 HLS 파트에서 오디오만 뽑는다.
     수신이 ProtocolError로 자주 끊겨서 min-height와 길이를 바꿔가며 재시도한다.
     """
     cookie = ensure_cookies()

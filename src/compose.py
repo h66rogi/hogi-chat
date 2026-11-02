@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-import os as _os, sys as _sys
-_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
-import config  # noqa: E402  (repo root)
 """방송 상황을 읽고 AI가 시청자 채팅을 생성해 Discord #hogi_chat에 보낸다.
 
 relay.py 가 수집해 둔 recent.jsonl(최근 채팅)과 title.txt(방송 제목)를 읽어
 주기적으로 채팅 한 줄을 만들어 보낸다. 실제 방송 채팅으로는 아직 쏘지 않는다.
 """
+
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+import config  # noqa: E402  (repo root)
 import collections
 import json
 import os
@@ -254,7 +255,7 @@ def recent_perception(seconds=180, limit=2, speech_chars=1200):
 
 
 BJ_NICKS = config.BJ_NICKS
-# 내 계정(로그인 계정)의 표시 닉. 이건 사칭이 아니라 나 자신이다(운영자 2026-10-24).
+# 내 계정(로그인 계정)의 표시 닉. 사칭이 아니라 나 자신이므로 신뢰한다.
 SELF_NICKS = config.SELF_NICKS
 # 내 계정 닉네임(사칭 감지 기준). 실제 발화자 신뢰는 별도(userId)로 판단한다.
 MY_NICKS = config.SELF_NICKS
@@ -353,7 +354,7 @@ def screen_speech(perc, chat_mentions):
 def violation_reason(line, chats=None):
     """SOOP에서 즉시 퇴장·블랙리스트 사유가 되는 채팅인지 본다.
 
-    시청자 채팅에 대화·반응하는 것은 친목 행위로 간주되어 금지다(운영자 2026-10-24 P0).
+    시청자 채팅에 대화·반응하는 것은 방송 규칙상 친목 행위로 간주되어 금지다.
     """
     t = (line or "").strip()
     if not t:
@@ -426,14 +427,15 @@ def recent_nicks(hours=3):
 
 
 def rule_violation(line, ctx=None):
-    """방송 규칙 위반이면 사유를, 아니면 None을 돌려준다(운영자 2026-10-24 지시)."""
+    """방송 규칙 위반이면 사유를, 아니면 None을 돌려준다."""
     t = (line or "").strip()
     if not t:
         return None
     for reason, words in RULE_BANS:
         if any(w in t for w in words):
             return f"방송규칙: {reason}"
-    if re.search(r"\d+\s*(명|분)\b", t):
+    # "1200명"은 시청자 수 언급이다. "12분"은 시간이라 잡지 않는다.
+    if re.search(r"\d+\s*명", t):
         return "방송규칙: 시청자 수 언급"
     # 닉네임 형태(영문·숫자·기호가 섞인 토큰, 예: ok.T)는 시청자 지목으로 본다.
     if re.search(r"[A-Za-z0-9]+[._\-][A-Za-z0-9]+|[A-Za-z]+[가-힣]*의\b", t):
@@ -698,7 +700,7 @@ def discord_send(channel_id, text):
     """보내고 메시지 id를 돌려준다. 실패하면 None.
 
     후보 전용 봇 토큰(DISCORD_HOGI_BOT_TOKEN)이 있으면 그 봇으로 버튼을 붙여 보내고,
-    없으면 기존 Hermes 봇으로 텍스트만 보낸다. 버튼은 메시지 id가 있어야 만들 수 있어서
+    없으면 다른 봇 토큰으로 텍스트만 보낸다. 버튼은 메시지 id가 있어야 만들 수 있어서
     먼저 보낸 뒤 components를 PATCH로 붙인다.
     """
     token = secret("DISCORD_HOGI_BOT_TOKEN") or secret("DISCORD_BOT_TOKEN")
@@ -988,7 +990,7 @@ def _save_picks(token, picks, info):
 def update_status(ch, info):
     """#hogi_chat 맨 아래에 상태 카드 하나만 유지한다(이전 카드 지우고 새로, 무음 알림).
 
-    운영자 요청(2026-10-24): 안 올릴 때도 어떤 상황인지 보여서 정상 동작 여부를 알 수 있게.
+    안 올릴 때도 어떤 상황인지 보여 정상 동작 여부를 알 수 있게 한다.
     """
     now = time.time()
     tr = last_transcript()
@@ -1070,7 +1072,7 @@ def wait_for_trigger():
     """다음 판단 시점까지 기다린다.
 
     BJ 새 문장(실시간 전사)이 들어오면 지난 판단 시작 뒤 TRIGGER_MIN_GAP초가 지났을 때 바로 판단한다.
-    BJ가 조용하면 TRIGGER_IDLE초마다 채팅만 보고 판단한다. (2026-10-24 운영자: 실시간으로 받은 걸 어떻게 처리하나)
+    BJ가 조용하면 TRIGGER_IDLE초마다 채팅만 보고 판단한다.
     """
     seen = _transcript_size()
     while True:
@@ -1125,7 +1127,7 @@ def style_pool():
 
 
 def chat_mood(window=120, base=600):
-    """채팅방 분위기 수치(운영자 요청 2026-10-24 "조금만 더 채팅을 반영"). 내 계정 줄은 뺀다.
+    """채팅방 분위기 수치. 내 계정 줄은 뺀다.
 
     반환: dict(speed, ratio, laugh, sad, emo, q, wave, lines) — 최근 window초 기준, 속도는 최근 base초 평균 대비.
     """

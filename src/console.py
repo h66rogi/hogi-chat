@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
-import os as _os, sys as _sys
-_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
-import config  # noqa: E402  (repo root)
 """후로기 채팅 후보 승인 콘솔 (로컬 웹 UI).
 
-http://localhost:8791  (tailnet: https://console.example.com)
+http://localhost:8791
   - 후보마다 "왜 이 문장이 나왔는지" 컨텍스트 근거를 함께 보여준다
   - ✅ 승인 / ❌ 거부, 생성·지각·전송 토글, 프롬프트 전문, 리플레이 결과 탭
 
 사용: python3 console.py [--port 8791] [--host 127.0.0.1]
 """
+
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+import config  # noqa: E402  (repo root)
 import glob
 import json
 import re
@@ -22,7 +23,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import store
 
 PORT = 8791
-HOST = "127.0.0.1"  # Caddy가 tailnet 도메인으로 프록시한다
+HOST = "127.0.0.1"  # 리버스 프록시 뒤에 두거나 사설망에서만 접근한다
 
 
 def live_send(text):
@@ -247,7 +248,7 @@ def payload():
     """카드 목록. 무거운 trace는 대기 중 카드에만 싣고, 판정 끝난 건 80장까지만 보낸다.
 
     예전에는 400장 전부의 trace(채팅 24줄·RAG·프롬프트 근거)를 매 20초 보내서 응답이 수백 KB였고
-    콘솔이 쓸 수 없을 만큼 느렸다(운영자 2026-10-24 지적).
+    콘솔이 쓸 수 없을 만큼 느려질 수 있다.
     """
     rows = store.candidates()
     pending = [r for r in rows if r.get("verdict") is None][-30:]

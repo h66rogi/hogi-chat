@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-import os as _os, sys as _sys
-_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
-import config  # noqa: E402  (repo root)
 """#hogi_chat 에 올린 후보의 리액션을 읽어 승인/거부를 기록한다.
 
 ✅ = 실제 방송 채팅으로 보낸다 (SOOP 로그인 세션 필요)
@@ -10,6 +7,10 @@ import config  # noqa: E402  (repo root)
 
 사용: python3 reaction.py [--once]
 """
+
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+import config  # noqa: E402  (repo root)
 import json
 import os
 import sys
@@ -35,11 +36,15 @@ def log(msg):
 
 def load_env():
     env = {}
-    for raw in open(ENV_PATH, encoding="utf-8"):
-        raw = raw.strip()
-        if raw and not raw.startswith("#") and "=" in raw:
-            k, v = raw.split("=", 1)
-            env[k.strip()] = v.strip().strip('"').strip("'")
+    try:
+        for raw in open(ENV_PATH, encoding="utf-8"):
+            raw = raw.strip()
+            if raw and not raw.startswith("#") and "=" in raw:
+                k, v = raw.split("=", 1)
+                env[k.strip()] = v.strip().strip('"').strip("'")
+    except FileNotFoundError:
+        pass
+    env.update({k: v for k, v in os.environ.items() if k.startswith(("DISCORD_", "HOGI_"))})
     return env
 
 

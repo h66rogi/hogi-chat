@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
+"""SOOP 채팅 WebSocket 로그인 + 전송. 테스트는 점 하나만."""
+
 import os as _os, sys as _sys
 _sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
 import config  # noqa: E402  (repo root)
-"""SOOP 채팅 WebSocket 로그인 + 전송. 테스트는 점 하나만."""
 import json
 import os
 import sys
@@ -14,8 +15,6 @@ import urllib.request
 import websocket
 
 BASE = config.BASE
-AUTH = json.load(open(os.path.join(BASE, ".soop_auth.json"), encoding="utf-8"))
-TK = AUTH.get("AuthTicket", "")
 BJ_ID = config.BJ_ID
 UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
       "(KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36")
@@ -46,6 +45,15 @@ def parse(raw):
     return out
 
 
+def auth():
+    """로그인 티켓 파일. 없으면 빈 dict(전송 불가 상태로 진행)."""
+    try:
+        with open(os.path.join(BASE, ".soop_auth.json"), encoding="utf-8") as f:
+            return json.load(f)
+    except (FileNotFoundError, ValueError):
+        return {}
+
+
 def _cookie_header():
     """로그인 쿠키(AuthTicket·UserTicket·BbsTicket). 없으면 빈 문자열."""
     ck = {}
@@ -55,9 +63,10 @@ def _cookie_header():
             if len(p) >= 7 and not line.startswith("#"):
                 ck[p[5]] = p[6]
     except FileNotFoundError:
+        a = auth()
         for k in ("AuthTicket", "UserTicket", "BbsTicket"):
-            if AUTH.get(k):
-                ck[k] = AUTH[k]
+            if a.get(k):
+                ck[k] = a[k]
     return "; ".join(f"{k}={v}" for k, v in ck.items())
 
 
@@ -65,7 +74,7 @@ def chan():
     """로그인 쿠키를 실어 방송 정보를 받는다.
 
     쿠키 없이 받으면 FTK가 비로그인용이라 채팅방에 '구독 안 한 사람'으로 들어간다
-    (2026-10-24 운영자 지적: 보낸 채팅에 구독 표시가 안 붙음). 쿠키를 실으면 같은 응답에
+    쿠키 없이 받으면 보낸 채팅에 구독 표시가 붙지 않는다. 쿠키를 실으면 같은 응답에
     USERID·SUB_PAY_CNT·TIER_TYPE이 오고 FTK도 내 계정용으로 바뀐다.
     """
     url = f"https://live.sooplive.com/afreeca/player_live_api.php?bjid={BJ_ID}"
@@ -127,9 +136,9 @@ def _remember(text):
 
 
 def _rate_ok(min_gap=3):
-    """전송 간 최소 간격만 건다(연타 방지, 운영자 지시로 20초에서 3초, 2026-10-24).
+    """전송 간 최소 간격만 건다(연타 방지).
 
-    시간당 상한은 운영자 지시로 뺐다(2026-10-24 "시간당 20건 초과 빼자"). 매 건 사람이 고르므로 상한이 의미 없다.
+    시간당 상한은 두지 않는다. 매 건 사람이 고르므로 상한이 의미 없다.
     같은 문장 10분 재전송 금지는 _guard에서 따로 유지한다.
     """
     path = os.path.join(BASE, "sent.jsonl")
@@ -154,6 +163,8 @@ def send_message(text, wait=3, dry=False):
 
     dry=True면 로그인·입장까지만 하고 채팅은 보내지 않는다(계정 상태 점검용).
     """
+    if not BJ_ID:
+        return {"ok": False, "reason": "no_bj_id"}
     if dry:
         pass
     elif not _guard(text):
@@ -172,7 +183,7 @@ def send_message(text, wait=3, dry=False):
     finished = threading.Event()
 
     def on_open(ws):
-        ws.send(pk(1, f"{F}{TK}{F}{F}16{F}"), opcode=2)
+        ws.send(pk(1, f"{F}{auth().get('AuthTicket', '')}{F}{F}16{F}"), opcode=2)
 
     def on_message(ws, m):
         for cmd, ret, fields in parse(m):
@@ -218,7 +229,7 @@ def send_message(text, wait=3, dry=False):
     _remember(text)  # 전송 이력은 여기서만 1회 기록(게이트웨이에서 또 쓰면 상한이 두 배로 빨리 찬다)
     finished.wait(wait)
     ws.close()
-    # 실제 전송 성공 판정: SOOP는 정상 전송에도 cmd5 ret=0을 돌려준다(2026-10-24 실측).
+    # 실제 전송 성공 판정: SOOP는 정상 전송에도 cmd5 ret=0을 돌려준다(실측).
     # ret 0/5 모두 성공으로 보고, 본문이 그대로 돌아왔는지로 확인한다.
     res["ok"] = bool(res["chat"]) and res["chat"][0] in (0, 5) and res["chat"][1] == text
     return res

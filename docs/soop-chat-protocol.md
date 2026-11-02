@@ -51,7 +51,7 @@ packet = b"\x1b\t" + f"{cmd:04d}{len(body):06d}00".encode() + body
 
 1. 쿠키에서 `AuthTicket`을 꺼낸다.
    macOS Chromium 계열 프로필이면 `read_cookies.py`로 복호화한다: `v10` AES-CBC, 키는 키체인
-   `Aside Safe Storage`(또는 브라우저 Safe Storage), 복호화 결과 앞 32바이트 제거.
+   `Chrome Safe Storage` 등 해당 브라우저의 Safe Storage, 복호화 결과 앞 32바이트 제거.
 2. `CMD 1`, body `\f{AuthTicket}\f\f16\f` — 로그인.
    응답 첫 필드가 `id(N)` 형태이고 `N`이 2 이상이면 로그인 성공(게스트는 16).
 3. `CMD 2` — JOIN. 로그인 상태에서는 `FTK`를 **빈 값**으로 보낸다. 값을 넣으면 무응답.

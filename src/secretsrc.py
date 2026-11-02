@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-import os as _os, sys as _sys
-_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
-import config  # noqa: E402  (repo root)
 """시크릿 조회 우선순위: macOS 키체인(vault) → .env → 환경변수.
 
 승인 창이 뜨지 않는다. 새 비밀값은 `python3 vault.py set <name>` 로 넣으면
 코드 수정 없이 바로 반영된다.
 """
+
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+import config  # noqa: E402  (repo root)
 import os
 import sys
 

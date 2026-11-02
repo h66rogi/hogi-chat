@@ -1,11 +1,8 @@
 #!/usr/bin/env python3
-import os as _os, sys as _sys
-_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
-import config  # noqa: E402  (repo root)
 """run_remote.py <script.py> [ssh-timeout]
 
-Reads the R2 read-only credential from 1Password in-process, makes sure the tiny bootstrap
-`remote_boot.py` (no secrets in it) exists on OCI vlife-rec-1, then opens one SSH session and
+Reads the read-only archive credential from a secret manager in-process, makes sure the tiny bootstrap
+`remote_boot.py` (no secrets in it) exists on the analysis host, then opens one SSH session and
 pipes: one JSON credential line, then the given script. The bootstrap executes the script
 in memory.
 
@@ -13,6 +10,10 @@ The remote argv is one plain here-doc command whose only variable part is a file
 quoting layer can mangle it, and the credential never touches a file, argv, the environment,
 the remote disk, or this process's stdout/stderr.
 """
+
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+import config  # noqa: E402  (repo root)
 import json, os, subprocess, sys
 
 OP = os.path.expanduser("~/.local/bin/op-safe")
@@ -40,19 +41,19 @@ def read_cred():
     r = subprocess.run([OP, "item", "list", "--vault", VAULT, "--format", "json"],
                        capture_output=True, text=True, timeout=180, env=env)
     if r.returncode != 0:
-        raise SystemExit("1Password list failed rc=%d" % r.returncode)
+        raise SystemExit("secret manager list failed rc=%d" % r.returncode)
     ids = [i["id"] for i in json.loads(r.stdout) if i.get("title") == TITLE]
     if len(ids) != 1:
         raise SystemExit("expected exactly 1 item titled %r, found %d" % (TITLE, len(ids)))
     g = subprocess.run([OP, "item", "get", ids[0], "--vault", VAULT, "--format", "json"],
                        capture_output=True, text=True, timeout=180, env=env)
     if g.returncode != 0:
-        raise SystemExit("1Password item read failed rc=%d" % g.returncode)
+        raise SystemExit("secret manager read failed rc=%d" % g.returncode)
     d = json.loads(g.stdout)
     f = {x.get("id"): x.get("value") for x in d.get("fields", [])}
     ak, sk = (f.get("username") or "").strip(), (f.get("credential") or "").strip()
     if not ak or not sk:
-        raise SystemExit("credential fields missing in 1Password item")
+        raise SystemExit("credential fields missing in secret item")
     return {"ak": ak, "sk": sk,
             "endpoint": "https://36875e4c357ab3a6fcfabe48f617dfb7.r2.cloudflarestorage.com",
             "bucket": os.environ.get("HOGI_R2_BUCKET", "")}

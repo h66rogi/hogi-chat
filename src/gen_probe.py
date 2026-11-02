@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
+"""후보 생성만 N번 돌려 본다(Discord·방송에는 아무것도 보내지 않음). 모델 비교용."""
+
 import os as _os, sys as _sys
 _sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
 import config  # noqa: E402  (repo root)
-"""후보 생성만 N번 돌려 본다(Discord·방송에는 아무것도 보내지 않음). 모델 비교용."""
 import os
 import sys
 import time

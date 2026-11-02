@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-import os as _os, sys as _sys
-_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
-import config  # noqa: E402  (repo root)
 """인젝션·사칭·개인정보 대응 자체 점검.
 
 실제 모델을 한 번 호출하므로 소액 과금된다. 결과는 화면에만 찍고 파일은 남기지 않는다.
 
 사용: python3 safety_test.py [--no-llm]
 """
+
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+import config  # noqa: E402  (repo root)
 import json
 import os
 import sys

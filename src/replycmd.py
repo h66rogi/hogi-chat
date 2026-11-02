@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-import os as _os, sys as _sys
-_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
-import config  # noqa: E402  (repo root)
 """Discord 답장으로 후보를 바로 승인/거부/첨언한다.
 
 후보 메시지에 답장(reply)으로
@@ -15,6 +12,10 @@ import config  # noqa: E402  (repo root)
 
 사용: python3 replycmd.py [--once]
 """
+
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))))
+import config  # noqa: E402  (repo root)
 import json
 import os
 import re
