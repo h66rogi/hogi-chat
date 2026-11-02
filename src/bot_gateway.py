@@ -75,7 +75,7 @@ def live_send(text):
         import ws_send
         importlib.reload(ws_send)
         r = ws_send.send_message(text)
-        return bool(r.get("chat")) and r["chat"][0] == 0
+        return bool(r.get("ok"))
     except Exception as e:
         log(f"[LIVE 실패] {e}")
         return False

@@ -88,7 +88,7 @@ def live_send(text):
         import ws_send
         importlib.reload(ws_send)
         r = ws_send.send_message(text)
-        ok = bool(r.get("chat")) and r["chat"][0] == 0
+        ok = bool(r.get("ok"))
         log(f"[LIVE {'ok' if ok else 'fail'}] {text} :: {json.dumps(r, ensure_ascii=False)[:200]}")
         return ok
     except Exception as e:
