@@ -42,20 +42,21 @@ c.execute("CREATE OR REPLACE TEMPORARY SECRET r2 (TYPE s3, KEY_ID ?, SECRET ?, E
 c.execute("SET http_retries=8; SET http_timeout=120000")
 files = sorted(x[0] for x in c.execute("SELECT * FROM glob(?)", [GLOB]).fetchall())
 
-# A) h66rogi broadcast time: 5-minute buckets (KST) with >= 3 chat lines = live minutes (proxy)
+BJ = os.environ.get("HOGI_BJ_ID", "")
+# A) target channel broadcast time: 5-minute buckets (KST) with >= 3 chat lines = live minutes (proxy)
 try:
     t = time.time()
-    rows = c.execute("""
+    rows = c.execute(f"""
         WITH b AS (SELECT time_bucket(INTERVAL 5 MINUTES, timezone('Asia/Seoul', timestamp)) bk, count(*) n
-                   FROM read_parquet(?) WHERE channel_id = 'h66rogi' AND message_type = 'chat' GROUP BY 1)
+                   FROM read_parquet(?) WHERE channel_id = '{BJ}' AND message_type = 'chat' GROUP BY 1)
         SELECT strftime(bk, '%Y-%m') mon, count(*) FILTER (WHERE n >= 3) live_buckets,
                count(DISTINCT CAST(bk AS DATE)) FILTER (WHERE n >= 3) live_days,
                sum(n) chat_lines
         FROM b GROUP BY 1 ORDER BY 1""", [files]).fetchall()
     res["hogi_monthly"] = [{"month": r[0], "live_hours": round(r[1] * 5 / 60, 1), "live_days": r[2], "chat_lines": r[3]} for r in rows]
-    hrs = c.execute("""
+    hrs = c.execute(f"""
         WITH b AS (SELECT time_bucket(INTERVAL 5 MINUTES, timezone('Asia/Seoul', timestamp)) bk, count(*) n
-                   FROM read_parquet(?) WHERE channel_id = 'h66rogi' AND message_type = 'chat' GROUP BY 1)
+                   FROM read_parquet(?) WHERE channel_id = '{BJ}' AND message_type = 'chat' GROUP BY 1)
         SELECT hour(bk) h, count(*) FROM b WHERE n >= 3 GROUP BY 1 ORDER BY 1""", [files]).fetchall()
     res["hogi_hour_of_day_buckets"] = {int(h): n for h, n in hrs}
     log("ok", {"step": "hogi", "secs": round(time.time() - t)})
