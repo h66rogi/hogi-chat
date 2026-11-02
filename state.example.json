@@ -1,0 +1,9 @@
+{
+  "enabled": false,
+  "dry_run": true,
+  "live": false,
+  "perceive": false,
+  "channel_id": "",
+  "bj_id": "",
+  "budget_usd_month": 100.0
+}
