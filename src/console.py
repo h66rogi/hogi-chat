@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""후로기 채팅 후보 승인 콘솔 (로컬 웹 UI).
+"""채팅 후보 승인 콘솔 (로컬 웹 UI).
 
 http://localhost:8791
   - 후보마다 "왜 이 문장이 나왔는지" 컨텍스트 근거를 함께 보여준다
@@ -43,7 +43,7 @@ def live_send(text):
 PAGE = r"""<!doctype html>
 <html lang="ko"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>후로기 채팅 콘솔</title>
+<title>hogi-chat 콘솔</title>
 <style>
 :root{--bg:#111316;--card:#1a1d21;--line:#2a2f35;--fg:#e6e8ea;--dim:#8b929a;--ok:#3ba55d;--no:#ed4245;--acc:#5865f2}
 *{box-sizing:border-box}
@@ -92,7 +92,7 @@ details summary{cursor:pointer;color:var(--dim);font-size:12px}
 </style></head><body>
 <header>
   <div class="row">
-    <h1>후로기 채팅 콘솔</h1>
+    <h1>hogi-chat 콘솔</h1>
     <span class="stat">대기 <b id="s-pend">-</b></span>
     <span class="stat">승인 <b id="s-appr">-</b></span>
     <span class="stat">거부 <b id="s-rej">-</b></span>
@@ -372,7 +372,7 @@ def main():
     if "--host" in sys.argv:
         HOST = sys.argv[sys.argv.index("--host") + 1]
     srv = ThreadingHTTPServer((HOST, PORT), Handler)
-    print(f"후로기 채팅 콘솔 http://{HOST}:{PORT}  (base={store.BASE})", flush=True)
+    print(f"hogi-chat 콘솔 http://{HOST}:{PORT}  (base={store.BASE})", flush=True)
     srv.serve_forever()
 
 

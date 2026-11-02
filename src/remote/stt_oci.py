@@ -65,7 +65,8 @@ def env(name):
 
 
 OPENAI_STT = os.environ.get("HOGI_OPENAI_STT", "gpt-4o-transcribe")
-STT_HINT = "후로기 인터넷 방송. 한국어 말소리만 받아쓴다. 노래 가사, 배경음악, 효과음은 옮기지 않는다."
+STT_HINT = ("%s인터넷 방송. 한국어 말소리만 받아쓴다. 노래 가사, 배경음악, 효과음은 옮기지 않는다."
+            % ((config.BJ_NAME + " ") if config.BJ_NAME else ""))
 
 
 def transcribe_openai(wav):

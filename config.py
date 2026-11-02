@@ -14,12 +14,13 @@ BASE = os.environ.get("HOGI_BASE") or os.path.join(HOME, "hogi-chat")
 # 시크릿·토큰을 읽는 .env 경로
 ENV_PATH = os.environ.get("HOGI_ENV") or os.path.join(BASE, ".env")
 
-# 방송 채널 (SOOP BJ id)
+# 방송 채널 (SOOP BJ id)와 표시 이름
 BJ_ID = os.environ.get("HOGI_BJ_ID", "")
+BJ_NAME = os.environ.get("HOGI_BJ_NAME", "")
 
 # 채팅에서 BJ로 취급할 표시 닉네임들
 BJ_NICKS = tuple(x.strip() for x in
-                 os.environ.get("HOGI_BJ_NICKS", "후로기,후록,후로7I").split(",") if x.strip())
+                 os.environ.get("HOGI_BJ_NICKS", "").split(",") if x.strip())
 
 # 내 계정(로그인 계정)의 userId와 표시 닉네임들
 SELF_IDS = tuple(x.strip() for x in os.environ.get("HOGI_SELF_IDS", "").split(",") if x.strip())

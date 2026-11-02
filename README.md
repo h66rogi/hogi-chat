@@ -96,6 +96,7 @@ python3 -m unittest discover -s tests -v
 | --- | --- |
 | `HOGI_BASE` | 상태·로그·데이터 디렉터리 (기본 `~/hogi-chat`) |
 | `HOGI_BJ_ID` | 방송 채널 id (**필수**) |
+| `HOGI_BJ_NAME`, `HOGI_BJ_NICKS` | 전사 프롬프트에 쓰는 표시 이름, BJ로 표시할 닉네임 |
 | `HOGI_SELF_IDS`, `HOGI_SELF_NICKS` | 내 계정 userId·표시 닉(사칭 판정 기준) |
 | `HOGI_CHANNEL_ID`, `HOGI_OWNER_DISCORD_ID` | Discord 카드 채널, 판정을 인정할 계정 |
 | `HOGI_MODEL`, `HOGI_JUDGE_MODEL`, `HOGI_JUDGE_MIN` | 생성·심사 모델과 통과 점수 |

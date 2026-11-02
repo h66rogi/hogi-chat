@@ -43,7 +43,8 @@ MAX_TURN = 12.0
 PREROLL = 0.3
 PRICE_PER_MIN = float(os.environ.get("HOGI_LIVE_STT_PRICE", "0.017"))
 KEYWORDS = [w for w in os.environ.get("HOGI_STT_KEYWORDS", "").split(",") if w]
-PROMPT = "후로기 인터넷 방송. 방송인의 한국어 말소리만 받아쓴다. 노래 가사, 배경음악, 효과음은 옮기지 않는다."
+PROMPT = ("%s인터넷 방송. 방송인의 한국어 말소리만 받아쓴다. 노래 가사, 배경음악, 효과음은 옮기지 않는다."
+          % ((config.BJ_NAME + " ") if config.BJ_NAME else ""))
 
 
 def log(msg):

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""후로기 콘솔용 Discord 봇 interaction 엔드포인트.
+"""승인 콘솔용 Discord 봇 interaction 엔드포인트.
 
 Discord가 서명한 요청만 처리한다(Ed25519, 앱 공개키).
   - PING(type 1) → PONG

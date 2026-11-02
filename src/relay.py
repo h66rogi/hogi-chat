@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""후로기(SOOP h66rogi) 라이브 채팅 → AI 판단 → Discord #hogi_chat 실시간 중계.
+"""SOOP 라이브 채팅을 수집해 후보 생성용 데이터(recent.jsonl)로 남긴다.
 
 - SOOP 채팅 WebSocket 프로토콜로 익명 수신 (읽기 전용, 채팅 전송 안 함)
 - 6초 배치로 AI 판단: 시청자에게 알릴 가치가 있는 메시지만 선별

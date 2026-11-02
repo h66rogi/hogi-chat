@@ -4,6 +4,8 @@ import duckdb
 C = CREDS
 EP, BK = C["endpoint"], C["bucket"]
 SELF_PREFIX = os.environ.get("HOGI_SELF_ID", "self")
+BJ = os.environ.get("HOGI_BJ_ID", "")
+BJ_NAME = os.environ.get("HOGI_BJ_NAME", "")
 PFX = os.environ.get("HOGI_ARCHIVE_PREFIX", "")
 GLOB = "s3://" + BK + "/" + PFX + "year=*/month=*/day=*/hour=*/data.parquet"
 BASE = os.path.expanduser("~/hogi-chat/archive")
@@ -84,9 +86,9 @@ def s_files():
 
 
 def s_target():
-    r = c.execute("""SELECT platform, channel_id, streamer_name, count(*) n, min(timestamp) t0, max(timestamp) t1,
+    r = c.execute(f"""SELECT platform, channel_id, streamer_name, count(*) n, min(timestamp) t0, max(timestamp) t1,
                      count(DISTINCT user_id) users FROM read_parquet(?)
-                     WHERE channel_id='h66rogi' OR streamer_name LIKE '%후로기%' GROUP BY 1,2,3 ORDER BY n DESC""",
+                     WHERE channel_id='{BJ}' OR streamer_name LIKE '%{BJ_NAME}%' GROUP BY 1,2,3 ORDER BY n DESC""",
                   [GLOB]).fetchall()
     hogi = [{"platform": x[0], "channel_id": x[1], "streamer_name": x[2], "n": x[3],
              "t0": str(x[4]), "t1": str(x[5]), "users": x[6]} for x in r]
@@ -99,8 +101,8 @@ def s_target():
 
 
 def s_hogi_hourly():
-    r = c.execute("""SELECT date_trunc('hour', timestamp) h, count(*) n FROM read_parquet(?)
-                     WHERE channel_id='h66rogi' OR streamer_name LIKE '%후로기%' GROUP BY 1 ORDER BY 1""",
+    r = c.execute(f"""SELECT date_trunc('hour', timestamp) h, count(*) n FROM read_parquet(?)
+                     WHERE channel_id='{BJ}' OR streamer_name LIKE '%{BJ_NAME}%' GROUP BY 1 ORDER BY 1""",
                   [GLOB]).fetchall()
     return [{"hour": str(x[0]), "n": x[1]} for x in r][:600]
 
@@ -158,7 +160,7 @@ def s_extract():
     """Exact-target extraction with column projection and a row cap (no SELECT *)."""
     COLS = ("timestamp, platform, channel_id, streamer_name, user_id, nickname, message_type, "
             "message_text, amount_krw")
-    where = ("channel_id='h66rogi' OR streamer_name LIKE '%후로기%' OR lower(user_id) LIKE '"
+    where = (f"channel_id='{BJ}' OR streamer_name LIKE '%{BJ_NAME}%' OR lower(user_id) LIKE '"
              + SELF_PREFIX + "%'")
     n = c.execute("SELECT count(*) FROM read_parquet(?) WHERE " + where, [GLOB]).fetchone()[0]
     out = {"rows_total": n, "cap": 3000000}

@@ -27,7 +27,8 @@ import stt_oci as base  # noqa: E402
 OUT = "/tmp/stt-compare"
 SECS = int(sys.argv[1]) if len(sys.argv) > 1 else 90
 FILTER = "highpass=f=80,speechnorm=e=6:r=0.0001:l=1"  # 실시간 전사와 같은 전처리
-HINT = "후로기 인터넷 방송. 한국어 말소리만 받아쓴다. 노래 가사, 배경음악, 효과음은 옮기지 않는다."
+HINT = ("%s인터넷 방송. 한국어 말소리만 받아쓴다. 노래 가사, 배경음악, 효과음은 옮기지 않는다."
+        % ((config.BJ_NAME + " ") if config.BJ_NAME else ""))
 JUDGE = os.environ.get("HOGI_STT_JUDGE", "google/gemini-4-argon")
 
 
