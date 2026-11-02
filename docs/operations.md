@@ -81,7 +81,7 @@
 
 ## 재개할 때 확인할 것
 
-1. SOOP 플레이어가 바뀌지 않았는지 (`CHATNO`·`FTD`·패킷 형식)
+1. SOOP 플레이어가 바뀌지 않았는지 (`CHATNO`·`FTK`·패킷 형식)
 2. 전사 단가와 모델명(`gpt-live-transcribe` 계열) 변경 여부
 3. 예산 상한(`budget_usd_month`, `HOGI_STT_CAP_USD`)
 4. 승인 없이 전송되는 경로가 없는지 (`state.json`의 `live`, `enabled`)
