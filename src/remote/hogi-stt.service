@@ -1,0 +1,18 @@
+[Unit]
+Description=hogi-chat BJ speech transcription (SOOP h66rogi -> transcript.jsonl)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/hogi-chat
+ExecStart=/usr/bin/python3 /home/ubuntu/hogi-chat/stt_oci.py
+Restart=always
+RestartSec=10
+Nice=10
+CPUQuota=60%
+MemoryMax=600M
+
+[Install]
+WantedBy=multi-user.target

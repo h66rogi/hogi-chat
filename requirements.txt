@@ -1,0 +1,9 @@
+# 런타임 (핵심 파이프라인)
+websocket-client>=1.7
+
+# RAG·아카이브 분석
+numpy>=1.26
+
+# 아카이브 측정(선택)
+# duckdb>=1.0
+# pyarrow>=15

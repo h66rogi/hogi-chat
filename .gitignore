@@ -1,0 +1,36 @@
+# 상태·로그·데이터
+*.jsonl
+*.log
+.env
+*.tmp
+state.json
+picks.json
+status.json
+sent.jsonl
+title.txt
+!state.example.json
+
+# 계정 자격증명
+.soop_auth.json
+.soop_cookies.txt
+.soop_uuid
+.login_frame.txt
+*.pem
+*.key
+
+# 파이썬
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# 데이터·미디어
+data/
+audio/
+frames/
+transcript.jsonl
+scene.jsonl
+style_seed.jsonl
+
+# macOS
+.DS_Store
