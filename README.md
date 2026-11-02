@@ -57,7 +57,8 @@ AI는 후보를 만들고 사람이 승인한다. 시스템은 그 판정을 다
 | `src/safety_test.py` | 인젝션·사칭·개인정보 대응 자체 점검 |
 | `src/replay.py` | 녹화본으로 컨텍스트 주입 리플레이 테스트 |
 | `research/archive/` | 대규모 채팅 아카이브(parquet) 측정 스크립트 |
-| `tests/` | 자격증명 없이 도는 필터·검증 테스트 |
+| `scripts/build_style_seed.py` | 내 과거 채팅에서 말투 시드(`style_seed.jsonl`)를 만든다 |
+| `tests/` | 자격증명 없이 도는 필터·저장소·시드 테스트 |
 
 ## 빠른 시작
 
@@ -115,7 +116,7 @@ python3 -m unittest discover -s tests -v
   `HOGI_RECORDER`로 경로를 준다. 인터페이스는 [docs/live-transcription.md](docs/live-transcription.md)에 적었다.
 - **SOOP 로그인**: 전송은 로그인 쿠키(AuthTicket)가 필요하다. 브라우저 프로필이 없으면 `.soop_auth.json`을 직접 만든다.
 - **Discord 앱**: 버튼 interaction은 봇 토큰과 앱 공개키가 필요하다.
-- **말투 시드**: `style_seed.jsonl`(내 과거 발화)과 `data/moments.jsonl`(RAG 색인)은 사용자가 직접 만든다. 형식은 [data/README.md](data/README.md).
+- **말투 시드**: `style_seed.jsonl`(내 과거 발화)은 `scripts/build_style_seed.py`로 만들고, `data/moments.jsonl`(RAG 색인)은 `src/retrieval.py build`로 만든다. 형식은 [data/README.md](data/README.md).
 
 ## 안전장치
 
